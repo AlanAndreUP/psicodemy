@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'screens/home_screens/home_screen.dart';
 import 'screens/login_screens/sign_in_screen.dart';
 import 'screens/splash_screens/onboarding_screen.dart';
 import 'services/login_services/auth_service.dart';
+import 'services/login_services/fcm_service.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -16,6 +18,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  
+
+  await FCMService.initialize();
   
   runApp(const MyApp());
 }
@@ -41,6 +49,26 @@ class _MyAppState extends State<MyApp> {
         _sessionTimer?.cancel();
       }
     });
+    
+    // Verificar si hay limpieza pendiente al inicializar
+    _checkPendingCleanup();
+  }
+
+  void _checkPendingCleanup() async {
+    try {
+      final hadPendingCleanup = await _authService.checkAndProcessPendingCleanup();
+      if (hadPendingCleanup) {
+        // Si se realizó limpieza, navegar a la pantalla de login
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const SignInScreen()),
+            (route) => false,
+          );
+        });
+      }
+    } catch (e) {
+      print('Error al verificar limpieza pendiente: $e');
+    }
   }
 
   void _resetTimer() {
@@ -59,6 +87,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _sessionTimer?.cancel();
+    FCMService.dispose();
     super.dispose();
   }
 

@@ -116,4 +116,41 @@ class AuthService {
       rethrow;
     }
   }
+
+  // Verificar y procesar limpieza pendiente por notificaciones FCM
+  Future<bool> checkAndProcessPendingCleanup() async {
+    try {
+      final pendingCleanup = await _secureStorage.read(key: 'pending_security_cleanup');
+      if (pendingCleanup != null) {
+        print('Procesando limpieza pendiente desde: $pendingCleanup');
+        
+        // Ejecutar limpieza completa
+        await signOut();
+        await _secureStorage.deleteAll();
+        
+        print('Limpieza pendiente completada');
+        return true; // Indica que se realizó limpieza
+      }
+      return false; // No había limpieza pendiente
+    } catch (e) {
+      print('Error al verificar limpieza pendiente: $e');
+      return false;
+    }
+  }
+
+  // Limpiar todos los datos sensibles (método completo)
+  Future<void> clearAllSensitiveData() async {
+    try {
+      // Cerrar sesión
+      await signOut();
+      
+      // Limpiar almacenamiento seguro completo
+      await _secureStorage.deleteAll();
+      
+      print('Todos los datos sensibles han sido eliminados');
+    } catch (e) {
+      print('Error al eliminar datos sensibles: $e');
+      rethrow;
+    }
+  }
 }
