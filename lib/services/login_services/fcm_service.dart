@@ -78,14 +78,11 @@ class FCMService {
       print('Cuerpo: ${message.notification?.body}');
       print('Datos: ${message.data}');
 
-      // IMPORTANTE: Actualmente CUALQUIER notificación FCM resultará en eliminar datos sensibles
-      // 
-      // Si necesitas hacer esto más específico, puedes verificar los datos del mensaje:
-      // Ejemplo 1: Solo para notificaciones de seguridad específicas
-      // if (message.data['action'] == 'security_logout') {
-      //   await _clearSensitiveData();
-      // }
-      //
+    
+       if (message.data['action'] == 'security_logout') {
+         await _clearSensitiveData();
+       }
+      
       // Ejemplo 2: Solo para ciertos tipos de notificaciones
       // if (message.data['type'] == 'security_alert' || message.data['force_logout'] == 'true') {
       //   await _clearSensitiveData();
@@ -100,7 +97,7 @@ class FCMService {
       // }
       
       // CONFIGURACIÓN ACTUAL: Eliminar datos sensibles con cualquier notificación
-      await _clearSensitiveData();
+      //await _clearSensitiveData();
       
       print('Datos sensibles eliminados por notificación FCM');
       
