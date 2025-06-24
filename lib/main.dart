@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -19,11 +20,25 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  print('🔥 Firebase inicializado');
   
-
-  await FCMService.initialize();
+  // INICIALIZAR FCM SERVICE CON NOTIFICACIONES VISUALES
+  try {
+    print('🔥 Inicializando FCM Service completo...');
+    await FCMService.initialize();
+    
+    print('🔥 Obteniendo token FCM...');
+    final token = await FCMService.getToken();
+    
+    print('');
+    print('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+    print('🔥 TU TOKEN FCM ES:');
+    print('🔥 ${token ?? 'TOKEN ES NULL'}');
+    print('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+    print('');
+  } catch (e) {
+    print('❌ Error: $e');
+  }
   
   runApp(const MyApp());
 }
@@ -84,10 +99,113 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Future<void> _showTokenDialog(BuildContext context) async {
+    try {
+      // Mostrar loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Obteniendo token FCM...'),
+            ],
+          ),
+        ),
+      );
+
+      // Obtener el token FCM directamente
+      final messaging = FirebaseMessaging.instance;
+      final token = await messaging.getToken();
+      
+      // Cerrar loading
+      if (context.mounted) Navigator.of(context).pop();
+
+      if (token != null && context.mounted) {
+        // Imprimir en consola
+        print('🔥 TOKEN FCM DESDE BOTÓN: $token');
+        
+        // Mostrar en dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('🔥 Tu Token FCM'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Copia este token para enviar notificaciones desde Firebase Console:',
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    token,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: token));
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Token copiado al portapapeles'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Copiar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          ),
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Error: No se pudo obtener el token FCM'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Cerrar loading si está abierto
+      if (context.mounted) Navigator.of(context).pop();
+      
+      print('Error al obtener token FCM: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _sessionTimer?.cancel();
-    FCMService.dispose();
     super.dispose();
   }
 
@@ -109,19 +227,35 @@ class _MyAppState extends State<MyApp> {
         home: StreamBuilder<User?>(
           stream: _authService.authStateChanges,
           builder: (context, snapshot) {
+            Widget child;
+            
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
+              child = const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
+            } else if (snapshot.hasData && snapshot.data != null) {
+              // Si hay un usuario autenticado, ir a HomeScreen
+              child = const HomeScreen();
+            } else {
+              // Si no hay usuario, mostrar onboarding
+              child = const OnboardingScreen();
             }
             
-            // Si hay un usuario autenticado, ir a HomeScreen
-            if (snapshot.hasData && snapshot.data != null) {
-              return const HomeScreen();
-            }
-            
-            // Si no hay usuario, mostrar onboarding
-            return const OnboardingScreen();
+            // Agregar botón flotante para obtener token FCM
+            return Scaffold(
+              body: child,
+              floatingActionButton: snapshot.hasData && snapshot.data != null 
+                ? FloatingActionButton.extended(
+                    onPressed: () => _showTokenDialog(context),
+                    backgroundColor: Colors.green,
+                    icon: const Icon(Icons.token, color: Colors.white),
+                    label: const Text(
+                      'FCM Token',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : null,
+            );
           },
         ),
         routes: {
