@@ -27,15 +27,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     try {
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
       
-      print('🔍 SignUp - Registro exitoso: ${userCredential.user?.uid}');
-      
-      // El StreamBuilder en main.dart se encargará de la navegación automáticamente
-      // No necesitamos navegación manual aquí
+      // Navegar al HomeScreen después del registro exitoso
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       print('🔍 SignUp - Error de registro: ${e.message}');
       setState(() { _error = e.message; });
@@ -60,12 +63,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      await FirebaseAuth.instance.signInWithCredential(credential);
       
-      print('🔍 SignUp - Registro con Google exitoso: ${userCredential.user?.uid}');
-      
-      // El StreamBuilder en main.dart se encargará de la navegación automáticamente
-      // No necesitamos navegación manual aquí
+      // Navegar al HomeScreen después del registro exitoso con Google
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       print('🔍 SignUp - Error de registro con Google: ${e.message}');
       setState(() { _error = e.message; });
@@ -169,7 +175,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         border: Border.all(color: Colors.grey.shade300),
                         color: Colors.white,
                       ),
-                      child: Image.network(
+                      child: Image.asset(
                         'lib/src/shared_imgs/gl.webp',
                         width: 36,
                         height: 36,
