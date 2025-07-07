@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1_a/screens/quotes_screens/detail_quotes_screen.dart';
 import '../../services/login_services/auth_service.dart';
 import '../../services/login_services/fcm_service.dart';
 import '../login_screens/sign_in_screen.dart';
+import 'package:flutter_application_1_a/screens/quotes_screens/quotes_screen.dart';
+import 'package:flutter_application_1_a/screens/forum_screens/forum_screen.dart';
 import '../../components/header_home.dart';
 import '../../components/search_bar_home.dart';
 import '../../components/footer_nav_bar.dart';
@@ -46,37 +49,105 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       bottomNavigationBar: FooterNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+  currentIndex: _currentIndex,
+  onTap: (index) {
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CitasScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ForoScreen()),
+      );
+    }
+  },
+),
     );
   }
 
   Widget _buildHomeContent() {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCredentialCard(),
-            const SizedBox(height: 16),
-            _buildFCMTokenCard(),
-            const SizedBox(height: 16),
-            _buildAppointmentCard(),
-            const SizedBox(height: 16),
-            _buildDoctorsSection(),
-            const SizedBox(height: 16),
-            _buildBootcampCard(),
-            const SizedBox(height: 16),
-            _buildAnniversaryCard(),
-            const SizedBox(height: 20),
-          ],
-        ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCredentialCard(),
+          const SizedBox(height: 16),
+          _buildFCMTokenCard(),
+          const SizedBox(height: 16),
+          _buildAppointmentCard(), // << Este es el botón que navegará
+          const SizedBox(height: 16),
+          _buildDoctorsSection(),
+          const SizedBox(height: 16),
+          _buildBootcampCard(),
+          const SizedBox(height: 16),
+          _buildAnniversaryCard(),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppointmentCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4A90E2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.access_time, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tu cita con el Mtro Ali',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Faltan 25 Horas para tu cita',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CitasScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Text(
+                'VER CITA →',
+                style: TextStyle(
+                  color: Color(0xFF4A90E2),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -98,19 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const Text(
             'FCM Token (Para Notificaciones)',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
             'Obtén tu token para enviar notificaciones de prueba',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(height: 12),
           Row(
@@ -141,67 +205,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _showFCMToken() async {
     try {
-      // Mostrar loading
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      // Obtener el token FCM
       final token = await FCMService.getToken();
-      
-      // Cerrar loading
+
       if (mounted) Navigator.of(context).pop();
 
       if (token != null && mounted) {
-        // Imprimir en consola
-        print('🔥 TOKEN FCM: $token');
-        
-        // Mostrar en dialog
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Tu Token FCM'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Copia este token para enviar notificaciones desde Firebase Console:',
-                  style: TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SelectableText(
-                    token,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            content: SelectableText(token),
             actions: [
               TextButton(
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: token));
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Token copiado al portapapeles'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Token copiado al portapapeles'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 },
                 child: const Text('Copiar'),
               ),
@@ -212,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         );
-      } else if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error: No se pudo obtener el token FCM'),
@@ -221,18 +251,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     } catch (e) {
-      // Cerrar loading si está abierto
       if (mounted) Navigator.of(context).pop();
-      
-      print('Error al obtener token FCM: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -257,20 +279,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Text(
                   'Obtén tu\nCredencial de\nEstudiante',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Y obtén los mejores\nDescuentos',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -282,19 +296,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Solicitar',
-                        style: TextStyle(
-                          color: Color(0xFFFF6B9D),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      Text('Solicitar', style: TextStyle(color: Color(0xFFFF6B9D), fontWeight: FontWeight.w600)),
                       SizedBox(width: 4),
-                      Icon(
-                        Icons.arrow_forward,
-                        color: Color(0xFFFF6B9D),
-                        size: 16,
-                      ),
+                      Icon(Icons.arrow_forward, color: Color(0xFFFF6B9D), size: 16),
                     ],
                   ),
                 ),
@@ -314,70 +318,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAppointmentCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4A90E2),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.access_time,
-            color: Colors.white,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tu cita con el Mtro Ali',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  'Faltan 25 Horas para tu cita',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text(
-              'VER CITA →',
-              style: TextStyle(
-                color: Color(0xFF4A90E2),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDoctorsSection() {
     return Row(
       children: [
-        Expanded(child: _buildDoctorCard('Dr. Alma', 'Como sentirse mejor', 'Aun que la vida sea complicada todo puede ser mejor')),
+        Expanded(child: _buildDoctorCard('Dr. Alma', 'Como sentirse mejor', 'Aunque la vida sea complicada, todo puede mejorar')),
         const SizedBox(width: 12),
-        Expanded(child: _buildDoctorCard('Dr. Carlos', 'Aprende amarte', 'El amor propio puede ser un gran aliado en la vida')),
+        Expanded(child: _buildDoctorCard('Dr. Carlos', 'Aprende a amarte', 'El amor propio puede ser un gran aliado')),
       ],
     );
   }
@@ -388,19 +334,12 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 8,
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 8)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: double.infinity,
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
@@ -411,32 +350,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 4),
-          Text(
-            description,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 11,
-              height: 1.3,
-            ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(description, style: const TextStyle(fontSize: 11, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
-          Text(
-            name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
+          Text(name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12)),
         ],
       ),
     );
@@ -444,7 +362,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBootcampCard() {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFF6B9D),
@@ -452,48 +369,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.calendar_today,
-            color: Colors.white,
-            size: 20,
-          ),
+          const Icon(Icons.calendar_today, color: Colors.white, size: 20),
           const SizedBox(width: 8),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'BootCamp ISO4000',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  '26/10/26',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
+                Text('BootCamp ISO4000', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('26/10/26', style: TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text(
-              'IR →',
-              style: TextStyle(
-                color: Color(0xFFFF6B9D),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            child: const Text('IR →', style: TextStyle(color: Color(0xFFFF6B9D), fontSize: 12, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -502,12 +392,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAnniversaryCard() {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF4E6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFE0B3), width: 1),
+        border: Border.all(color: const Color(0xFFFFE0B3)),
       ),
       child: Row(
         children: [
@@ -515,37 +404,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Aniversario',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF333),
-                  ),
-                ),
+                const Text('Aniversario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF333))),
                 const SizedBox(height: 4),
-                const Text(
-                  'Celebremos juntos',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666),
-                  ),
-                ),
+                const Text('Celebremos juntos', style: TextStyle(fontSize: 14, color: Color(0xFF666))),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4A90E2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Text(
-                    'Ver más →',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  decoration: BoxDecoration(color: const Color(0xFF4A90E2), borderRadius: BorderRadius.circular(16)),
+                  child: const Text('Ver más →', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

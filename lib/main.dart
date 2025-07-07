@@ -10,6 +10,8 @@ import 'screens/login_screens/sign_in_screen.dart';
 import 'screens/splash_screens/onboarding_screen.dart';
 import 'services/login_services/auth_service.dart';
 import 'services/login_services/fcm_service.dart';
+import 'screens/quotes_screens/detail_quotes_screen.dart';
+import 'screens/quotes_screens/quotes_screen.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -27,7 +29,7 @@ void main() async {
     print('🔥 Inicializando FCM Service completo...');
     await FCMService.initialize();
     
-    print('🔥 Obteniendo token FCM...');
+    print('🔥 Obteniendo token FCM...'); 
     final token = await FCMService.getToken();
     
     print('');
@@ -261,6 +263,8 @@ class _MyAppState extends State<MyApp> {
         routes: {
           '/home': (context) => const HomeScreen(),
           '/signin': (context) => const SignInScreen(),
+          '/citas': (context) => const CitasScreen(),
+          '/detalle-cita': (context) => const DetalleCitaScreen(),
         },
       ),
     );
