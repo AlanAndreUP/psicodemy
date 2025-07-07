@@ -53,11 +53,30 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Timer? _sessionTimer;
   final _authService = AuthService();
+  bool _isCheckingAuth = true;
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
+    
+    // Verificar usuario actual al iniciar
+    _checkCurrentUser();
+    
+    // Agregar listener directo para debug
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      print('🔥🔥🔥 FIREBASE AUTH DIRECTO - Usuario: ${user?.uid ?? 'null'}');
+      print('🔥🔥🔥 FIREBASE AUTH DIRECTO - Email: ${user?.email ?? 'null'}');
+      
+      // Actualizar estado local
+      setState(() {
+        _currentUser = user;
+        _isCheckingAuth = false;
+      });
+    });
+    
     _authService.authStateChanges.listen((user) {
+      print('🔥🔥🔥 AUTH SERVICE - Usuario: ${user?.uid ?? 'null'}');
       if (user != null) {
         _resetTimer();
       } else {
@@ -65,8 +84,17 @@ class _MyAppState extends State<MyApp> {
       }
     });
     
-    // Verificar si hay limpieza pendiente al inicializar
-    _checkPendingCleanup();
+    // Comentar temporalmente para evitar interferencia con la navegación
+    // _checkPendingCleanup();
+  }
+
+  void _checkCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    print('🔥🔥🔥 VERIFICANDO USUARIO INICIAL: ${user?.uid ?? 'null'}');
+    setState(() {
+      _currentUser = user;
+      _isCheckingAuth = false;
+    });
   }
 
   void _checkPendingCleanup() async {
@@ -224,45 +252,39 @@ class _MyAppState extends State<MyApp> {
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         debugShowCheckedModeBanner: false,
-        home: StreamBuilder<User?>(
-          stream: _authService.authStateChanges,
-          builder: (context, snapshot) {
-            Widget child;
-            
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              child = const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              // Si hay un usuario autenticado, ir a HomeScreen
-              child = const HomeScreen();
-            } else {
-              // Si no hay usuario, mostrar onboarding
-              child = const OnboardingScreen();
-            }
-            
-            // Agregar botón flotante para obtener token FCM
-            return Scaffold(
-              body: child,
-              floatingActionButton: snapshot.hasData && snapshot.data != null 
-                ? FloatingActionButton.extended(
-                    onPressed: () => _showTokenDialog(context),
-                    backgroundColor: Colors.green,
-                    icon: const Icon(Icons.token, color: Colors.white),
-                    label: const Text(
-                      'FCM Token',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )
-                : null,
-            );
-          },
-        ),
+        home: _buildHome(),
         routes: {
           '/home': (context) => const HomeScreen(),
           '/signin': (context) => const SignInScreen(),
         },
       ),
     );
+  }
+
+  Widget _buildHome() {
+    print('🔥🔥🔥 BUILD HOME - isCheckingAuth: $_isCheckingAuth');
+    print('🔥🔥🔥 BUILD HOME - currentUser: ${_currentUser?.uid ?? 'null'}');
+    
+    if (_isCheckingAuth) {
+      print('🔥🔥🔥 BUILD HOME - Mostrando loading...');
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Verificando autenticación...'),
+            ],
+          ),
+        ),
+      );
+    } else if (_currentUser != null) {
+      print('🔥🔥🔥 BUILD HOME - Usuario autenticado, mostrando HomeScreen');
+      return const HomeScreen();
+    } else {
+      print('🔥🔥🔥 BUILD HOME - No hay usuario, mostrando OnboardingScreen');
+      return const OnboardingScreen();
+    }
   }
 }

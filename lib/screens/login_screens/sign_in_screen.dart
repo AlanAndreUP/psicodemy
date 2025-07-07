@@ -44,6 +44,7 @@ class _SignInScreenState extends State<SignInScreen> {
     setState(() { _isLoading = true; _error = null; });
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      print('🔥🔥🔥 DEBUG - GoogleUser: ${googleUser?.displayName}');
       if (googleUser == null) {
         setState(() { _isLoading = false; });
         return;
@@ -54,14 +55,13 @@ class _SignInScreenState extends State<SignInScreen> {
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
-      
-      // Navegar al HomeScreen después del inicio de sesión exitoso
-      if (mounted) {
+      print('🔥🔥🔥 DEBUG - Credential: ${credential.accessToken}');
+
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
-      }
+      
     } on FirebaseAuthException catch (e) {
       setState(() { _error = e.message; });
     } finally {
@@ -163,7 +163,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         color: Colors.white,
                       ),
                       child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+                        'lib/src/shared_imgs/gl.webp',
                         width: 36,
                         height: 36,
                       ),

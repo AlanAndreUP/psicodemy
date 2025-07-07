@@ -19,36 +19,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _error;
 
   Future<void> _signUpWithEmail() async {
+    print('🔍 SignUp - Iniciando proceso de registro con email...');
     setState(() { _isLoading = true; _error = null; });
     if (_passwordController.text != _confirmController.text) {
+      print('🔍 SignUp - Error: Las contraseñas no coinciden');
       setState(() { _error = 'Las contraseñas no coinciden'; _isLoading = false; });
       return;
     }
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
       
-      // Navegar al HomeScreen después del registro exitoso
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
-        );
-      }
+      print('🔍 SignUp - Registro exitoso: ${userCredential.user?.uid}');
+      
+      // El StreamBuilder en main.dart se encargará de la navegación automáticamente
+      // No necesitamos navegación manual aquí
     } on FirebaseAuthException catch (e) {
+      print('🔍 SignUp - Error de registro: ${e.message}');
       setState(() { _error = e.message; });
     } finally {
+      print('🔍 SignUp - Finalizando proceso de registro');
       setState(() { _isLoading = false; });
     }
   }
 
   Future<void> _signInWithGoogle() async {
+    print('🔍 SignUp - Iniciando proceso de registro con Google...');
     setState(() { _isLoading = true; _error = null; });
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
+        print('🔍 SignUp - Usuario canceló el registro con Google');
         setState(() { _isLoading = false; });
         return;
       }
@@ -57,18 +60,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       
-      // Navegar al HomeScreen después del registro exitoso con Google
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
-        );
-      }
+      print('🔍 SignUp - Registro con Google exitoso: ${userCredential.user?.uid}');
+      
+      // El StreamBuilder en main.dart se encargará de la navegación automáticamente
+      // No necesitamos navegación manual aquí
     } on FirebaseAuthException catch (e) {
+      print('🔍 SignUp - Error de registro con Google: ${e.message}');
       setState(() { _error = e.message; });
     } finally {
+      print('🔍 SignUp - Finalizando proceso de registro con Google');
       setState(() { _isLoading = false; });
     }
   }
@@ -168,7 +170,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         color: Colors.white,
                       ),
                       child: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+                        'lib/src/shared_imgs/gl.webp',
                         width: 36,
                         height: 36,
                       ),
