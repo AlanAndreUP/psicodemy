@@ -50,23 +50,31 @@ class _ForoScreenState extends State<ForoScreen> {
         ),
       ),
       bottomNavigationBar: FooterNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          // Navegación condicional
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/citas');
-          } else if (index == 2) {
-            // Ya estás en foro
-          } else if (index == 3) {
-            Navigator.pushReplacementNamed(context, '/settings');
-          }
-        },
-      ),
+  currentIndex: _currentIndex,
+  onTap: (index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/citas');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chats');
+        break;
+      case 3:
+        Navigator.pushReplacementNamed(context, '/foros');
+        break;
+      case 4:
+        Navigator.pushReplacementNamed(context, '/settings');
+        break;
+    }
+  },
+),
     );
   }
 

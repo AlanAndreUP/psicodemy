@@ -51,16 +51,26 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: FooterNavBar(
   currentIndex: _currentIndex,
   onTap: (index) {
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const CitasScreen()),
-      );
-    } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ForoScreen()),
-      );
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/citas');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chats');
+        break;
+      case 3:
+        Navigator.pushReplacementNamed(context, '/foros');
+        break;
+      case 4:
+        Navigator.pushReplacementNamed(context, '/settings');
+        break;
     }
   },
 ),

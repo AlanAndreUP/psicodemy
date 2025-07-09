@@ -4,6 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_application_1_a/screens/chats_screens/chat_screen.dart';
+import 'package:flutter_application_1_a/screens/chats_screens/chats_screen.dart';
+import 'package:flutter_application_1_a/screens/forum_screens/forum_screen.dart';
+import 'package:flutter_application_1_a/screens/settings_screens/setting_screen.dart';
 import 'firebase_options.dart';
 import 'screens/home_screens/home_screen.dart';
 import 'screens/login_screens/sign_in_screen.dart';
@@ -265,6 +269,10 @@ class _MyAppState extends State<MyApp> {
           '/signin': (context) => const SignInScreen(),
           '/citas': (context) => const CitasScreen(),
           '/detalle-cita': (context) => const DetalleCitaScreen(),
+          '/foros': (context) => const ForoScreen(),
+          '/chats': (context) => const ChatListScreen(),
+          '/chat-detail': (context) => const ChatDetailScreen(),
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );

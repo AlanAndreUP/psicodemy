@@ -116,24 +116,31 @@ class _DetalleCitaScreenState extends State<DetalleCitaScreen> {
         ),
       ),
       bottomNavigationBar: FooterNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ForoScreen()),
-            );
-          }
-        },
-      ),
+  currentIndex: _currentIndex,
+  onTap: (index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/citas');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chats');
+        break;
+      case 3:
+        Navigator.pushReplacementNamed(context, '/foros');
+        break;
+      case 4:
+        Navigator.pushReplacementNamed(context, '/settings');
+        break;
+    }
+  },
+),
     );
   }
 }
